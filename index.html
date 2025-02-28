@@ -30,7 +30,7 @@
         .message {
             margin: 10px 0;
             padding: 10px 15px;
-            border-radius: 10px;
+            border-radius 10px;
             max-width: 80%;
             opacity: 0;
             animation: fadeIn 0.5s ease forwards;
@@ -96,35 +96,32 @@
             messagesDiv.innerHTML += `<div class="message user">Ты: ${userInput}</div>`;
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            // Формируем запрос для ИИ с упрощением
+            // Формируем запрос для OpenAI
             const prompt = `Предложи 3 простых идеи подарков для человека: ${userInput}. Ответ дай в виде списка (1. ..., 2. ..., 3. ...).`;
             try {
-                const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
+                const response = await fetch('https://api.openai.com/v1/completions', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer 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',
+                        'Authorization': 'Bearer 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',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ inputs: prompt, max_length: 100 })
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo-instruct',
+                        prompt: prompt,
+                        max_tokens: 100
+                    })
                 });
 
-                if (!response.ok) throw new Error('API не отвечает');
+                if (!response.ok) throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
 
                 const data = await response.json();
-                let botResponse = data[0]?.generated_text || "🎁 Похоже, я задумался... Давай попробуем проще?";
+                let botResponse = data.choices[0]?.text.trim() || "🎁 Похоже, я задумался... Давай попробуем проще?";
 
-                // Очищаем лишний текст и форматируем
-                botResponse = botResponse.replace(prompt, "").trim();
-                if (!botResponse.includes("1.")) {
-                    botResponse = "🎁 Ой, не получилось... Как насчёт: 1. Спортивная бутылка, 2. Наушники, 3. Книга?";
-                } else {
-                    botResponse = `🎁 Идеи для тебя: ${botResponse}`;
-                }
-
-                // Показываем ответ бота
+                // Форматируем ответ
+                botResponse = `🎁 Идеи для тебя: ${botResponse}`;
                 messagesDiv.innerHTML += `<div class="message bot">${botResponse}</div>`;
             } catch (error) {
-                messagesDiv.innerHTML += `<div class="message bot">🎁 Ой, что-то пошло не так! Давай попробуем ещё раз или упростим запрос?</div>`;
+                messagesDiv.innerHTML += `<div class="message bot">🎁 Ошибка! ${error.message} Проверь ключ или попробуй позже.</div>`;
             }
 
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
