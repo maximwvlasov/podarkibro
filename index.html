@@ -98,15 +98,15 @@
 
             // Формируем запрос для OpenAI через CORS-прокси
             const prompt = `Предложи 3 простых идеи подарков для человека: ${userInput}. Ответ дай в виде списка (1. ..., 2. ..., 3. ...).`;
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const proxyUrl = 'https://corsproxy.io/?';
             const apiUrl = 'https://api.openai.com/v1/completions';
             try {
                 const response = await fetch(proxyUrl + apiUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer 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',
+                        'Authorization': 'Bearer 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',
                         'Content-Type': 'application/json',
-                        'Origin': 'https://maximvlasov.github.io' // Указываем origin для прокси
+                        'Origin': 'https://maximvlasov.github.io'
                     },
                     body: JSON.stringify({
                         model: 'gpt-3.5-turbo-instruct',
