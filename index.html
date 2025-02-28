@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПодаркиBro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #e0f7fa, #80deea);
+            margin: 0;
+            padding: 20px;
+        }
+        .chat {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 10px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .user {
+            background: #42a5f5;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot {
+            background: #e8f5e9;
+            color: #2e7d32;
+            align-self: flex-start;
+        }
+        .input-area {
+            display: flex;
+            margin-top: 10px;
+        }
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #388e3c;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat">
+        <div class="messages" id="messages">
+            <div class="message bot">🎁 Привет! Я ПодаркиBro! Напиши, для кого нужен подарок и что они любят, а я подберу идеи!</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Например: другу, любит спорт">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            if (!userInput) return;
+
+            // Показываем сообщение пользователя
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<div class="message user">Ты: ${userInput}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Запрос к Hugging Face с твоим ключом
+            const prompt = `Предложи идеи подарков: ${userInput}`;
+            const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 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', // Твой ключ
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ inputs: prompt })
+            });
+
+            const data = await response.json();
+            let botResponse = data[0]?.generated_text || "Ой, что-то пошло не так... Попробуй ещё раз!";
+            
+            // Убираем лишний текст из ответа и добавляем эмодзи
+            botResponse = botResponse.replace(prompt, "").trim();
+            botResponse = `🎁 Идеи для тебя: ${botResponse}`;
+
+            // Показываем ответ бота
+            messagesDiv.innerHTML += `<div class="message bot">${botResponse}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Очищаем поле ввода
+            document.getElementById('userInput').value = '';
+        }
+
+        // Отправка сообщения по нажатию Enter
+        document.getElementById('userInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
