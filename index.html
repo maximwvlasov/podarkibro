@@ -30,7 +30,7 @@
         .message {
             margin: 10px 0;
             padding: 10px 15px;
-            border-radius 10px;
+            border-radius: 10px;
             max-width: 80%;
             opacity: 0;
             animation: fadeIn 0.5s ease forwards;
@@ -108,11 +108,15 @@
                     body: JSON.stringify({
                         model: 'gpt-3.5-turbo-instruct',
                         prompt: prompt,
-                        max_tokens: 100
+                        max_tokens: 100,
+                        temperature: 0.7 // Добавлено для разнообразия ответов
                     })
                 });
 
-                if (!response.ok) throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Ошибка ${response.status}: ${response.statusText} - ${errorText}`);
+                }
 
                 const data = await response.json();
                 let botResponse = data.choices[0]?.text.trim() || "🎁 Похоже, я задумался... Давай попробуем проще?";
@@ -121,7 +125,7 @@
                 botResponse = `🎁 Идеи для тебя: ${botResponse}`;
                 messagesDiv.innerHTML += `<div class="message bot">${botResponse}</div>`;
             } catch (error) {
-                messagesDiv.innerHTML += `<div class="message bot">🎁 Ошибка! ${error.message} Проверь ключ или попробуй позже.</div>`;
+                messagesDiv.innerHTML += `<div class="message bot">🎁 Ошибка! ${error.message} Проверь ключ на https://platform.openai.com или подожди.</div>`;
             }
 
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
