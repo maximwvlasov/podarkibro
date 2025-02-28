@@ -96,29 +96,38 @@
             messagesDiv.innerHTML += `<div class="message user">Ты: ${userInput}</div>`;
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            // Запрос к Hugging Face с твоим ключом
-            const prompt = `Предложи идеи подарков: ${userInput}`;
-            const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer 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', // Твой ключ
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ inputs: prompt })
-            });
+            // Формируем запрос для ИИ с упрощением
+            const prompt = `Предложи 3 простых идеи подарков для человека: ${userInput}. Ответ дай в виде списка (1. ..., 2. ..., 3. ...).`;
+            try {
+                const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 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',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ inputs: prompt, max_length: 100 })
+                });
 
-            const data = await response.json();
-            let botResponse = data[0]?.generated_text || "Ой, что-то пошло не так... Попробуй ещё раз!";
-            
-            // Убираем лишний текст из ответа и добавляем эмодзи
-            botResponse = botResponse.replace(prompt, "").trim();
-            botResponse = `🎁 Идеи для тебя: ${botResponse}`;
+                if (!response.ok) throw new Error('API не отвечает');
 
-            // Показываем ответ бота
-            messagesDiv.innerHTML += `<div class="message bot">${botResponse}</div>`;
+                const data = await response.json();
+                let botResponse = data[0]?.generated_text || "🎁 Похоже, я задумался... Давай попробуем проще?";
+
+                // Очищаем лишний текст и форматируем
+                botResponse = botResponse.replace(prompt, "").trim();
+                if (!botResponse.includes("1.")) {
+                    botResponse = "🎁 Ой, не получилось... Как насчёт: 1. Спортивная бутылка, 2. Наушники, 3. Книга?";
+                } else {
+                    botResponse = `🎁 Идеи для тебя: ${botResponse}`;
+                }
+
+                // Показываем ответ бота
+                messagesDiv.innerHTML += `<div class="message bot">${botResponse}</div>`;
+            } catch (error) {
+                messagesDiv.innerHTML += `<div class="message bot">🎁 Ой, что-то пошло не так! Давай попробуем ещё раз или упростим запрос?</div>`;
+            }
+
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-            // Очищаем поле ввода
             document.getElementById('userInput').value = '';
         }
 
